@@ -27,8 +27,7 @@ AGGREGATIONS = {
     "median": lambda col: col.agg("median"),
     "std": lambda col: col.agg("std"),
     "var": lambda col: col.agg("var"),
-    "range": lambda col: col.max() - col.min(),
-    "freq": lambda col: col.value_counts().idxmax()
+    "range": lambda col: col.max() - col.min()
 }
 
 
@@ -40,7 +39,7 @@ def aggregate_features(iterations_filename: str, issues_filename: str, output_it
     print("Aggregating features. Progress:[", end="")
     # Iterate through each row in the first dataset
     for index, row in df_iterations.iterrows():
-        if index % 100 == 0:
+        if index % 10 == 0:
             print("#", end="")
         sprint_id = row['sprintid']
 
@@ -53,10 +52,10 @@ def aggregate_features(iterations_filename: str, issues_filename: str, output_it
                 if FIELDS[field] == int:
                     df_iterations.at[index, f"{field}_{agg_key}"] = agg_fun(matching_rows[field])
                 elif FIELDS[field] == str:
-                    # for each different value of the field, count the number of occurrences
+                    # for each different value of the field, count the number of occurrences (frequency)
                     counts = matching_rows[field].value_counts()
                     for value in counts.index:
-                        df_iterations.at[index, f"{field}_{value}"] = counts[value]
+                        df_iterations.at[index, f"{field}_freq_{value}"] = counts[value]
 
     print("]")
     # store dataset
