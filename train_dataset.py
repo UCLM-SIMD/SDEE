@@ -29,13 +29,27 @@ def train_dataset(iterations_filename: str, output_filename: str):
         'max_depth': [3, 5, 7]
     }
 
-    grid_search = GridSearchCV(GradientBoostingRegressor(), param_grid, cv=5)
+    grid_search = GridSearchCV(GradientBoostingRegressor(), param_grid, cv=10)
     grid_search.fit(X_train, y_train)
 
     best_model = grid_search.best_estimator_
+    print(f"Best model: {best_model}")
+
+    best_parameters = grid_search.best_params_
+    print(f"Best parameters: {best_parameters}")
+
+    best_score = grid_search.best_score_
+    print(f"Best score: {best_score}")
 
     # Step 5: Evaluate the Model
     predictions = best_model.predict(X_test)
+    print(f"Predictions:\n"
+          f"Min: {min(predictions)}\n"
+          f"Max: {max(predictions)}\n"
+          f"Mean: {predictions.mean()}\n"
+          f"Median: {pd.Series(predictions).median()}\n"
+          f"Std: {predictions.std()}\n"
+          )
     mse = calculate_mean_squared_error(y_test, predictions)
     mae = calculate_mae(y_test, predictions)
     nmae = calculate_nmae(y_test, predictions)
