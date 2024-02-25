@@ -57,6 +57,9 @@ def aggregate_features(iterations_filename: str, issues_filename: str, output_it
                     for value in counts.index:
                         df_iterations.at[index, f"{field}_freq_{value}"] = counts[value]
 
+    # Fill NaN values with 0 for categorical features
+    df_iterations.fillna(0, inplace=True)
+
     print("]")
     # store dataset
     df_iterations.to_csv(output_iterations_filename, index=False)
