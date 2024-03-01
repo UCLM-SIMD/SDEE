@@ -41,10 +41,11 @@ def aggregate_features(iterations_filename: str, issues_filename: str, output_it
     for index, row in df_iterations.iterrows():
         if index % 10 == 0:
             print("#", end="")
+        board_id = row['boardid']
         sprint_id = row['sprintid']
 
-        # Filter rows in the second dataset that have the same iteration column value
-        matching_rows = df_issues[df_issues['sprintid'] == sprint_id]
+        # Filter rows in the second dataset that have the same iteration and board id
+        matching_rows = df_issues[(df_issues['boardid'] == board_id) & (df_issues['sprintid'] == sprint_id)]
 
         # Perform aggregations:
         for field in fields_to_aggregate:
