@@ -35,6 +35,9 @@ def aggregate_features(iterations_filename: str, issues_filename: str, output_it
     df_iterations = pd.read_csv(iterations_filename, dtype={field: FIELDS[field] for field in FIELDS})
     df_issues = pd.read_csv(issues_filename)
 
+    print(f"Nº Iterations: {df_iterations.shape[0]}")
+    print(f"Nº Issues: {df_issues.shape[0]}")
+
     fields_to_aggregate = list(FIELDS.keys())
     print("Aggregating features. Progress:[", end="")
     # Iterate through each row in the first dataset
@@ -45,16 +48,19 @@ def aggregate_features(iterations_filename: str, issues_filename: str, output_it
         sprint_id = row['sprintid']
 
         # Filter rows in the second dataset that have the same iteration and board id
-        matching_rows = df_issues[(df_issues['boardid'] == board_id) & (df_issues['sprintid'] == sprint_id)]
+        iteration_issues = df_issues[(df_issues['boardid'] == board_id) & (df_issues['sprintid'] == sprint_id)]
+
+        # basic statistics
+        df_iterations.at[index, "no_issues"] = iteration_issues.shape[0]
 
         # Perform aggregations:
         for field in fields_to_aggregate:
             for agg_key, agg_fun in AGGREGATIONS.items():
                 if FIELDS[field] == int:
-                    df_iterations.at[index, f"{field}_{agg_key}"] = agg_fun(matching_rows[field])
+                    df_iterations.at[index, f"{field}_{agg_key}"] = agg_fun(iteration_issues[field])
                 elif FIELDS[field] == str:
                     # for each different value of the field, count the number of occurrences (frequency)
-                    counts = matching_rows[field].value_counts()
+                    counts = iteration_issues[field].value_counts()
                     for value in counts.index:
                         df_iterations.at[index, f"{field}_freq_{value}"] = counts[value]
 
