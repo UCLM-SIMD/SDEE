@@ -4,6 +4,8 @@ from sklearn.metrics import make_scorer
 from sklearn.model_selection import train_test_split, GridSearchCV, cross_validate, KFold
 
 from sklearn.ensemble import GradientBoostingRegressor
+
+from custom_kfold import CustomKFold
 from statistics import calculate_mae, calculate_nmae, calculate_mean_squared_error
 import joblib
 import matplotlib.pyplot as plt
@@ -109,7 +111,8 @@ def train_best(iterations_filename: str, output_filename: str):
     y = df[target_variable_column]  # Target variable
 
     # Assuming your data is in X and y
-    kf = KFold(n_splits=10, shuffle=True, random_state=42)
+    n_folds = 10
+    kf = CustomKFold(n_splits=n_folds, shuffle=False)
 
     nmae_values = []
 
@@ -127,9 +130,10 @@ def train_best(iterations_filename: str, output_filename: str):
         # Calculate NMAE for this fold
         nmae = calculate_nmae(y_test, y_pred)
         nmae_values.append(nmae)
-
+    print(f"avg nmae: {sum(nmae_values) / len(nmae_values)}")
     plt.boxplot(nmae_values)
     plt.savefig(f"{output_filename}_boxplot.png")
+
 
 
 if __name__ == "__main__":

@@ -14,7 +14,7 @@ def calculate_mae(y_test: list, y_pred: list) -> float:
 
 
 def calculate_iqr(y_test: list) -> float:
-    return stats.iqr(y_test, interpolation='midpoint')  # default linear
+    return stats.iqr(y_test, interpolation='linear')  # default linear
 
 
 def calculate_mean_squared_error(y_test: list, y_pred: list) -> float:
