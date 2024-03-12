@@ -18,3 +18,6 @@ class CustomKFold:
             test_indices = indices[i: len(X): self.n_splits]
             train_indices = [idx for idx in indices if idx not in test_indices]
             yield train_indices, test_indices
+
+    def get_n_splits(self, X, y, groups=None):
+        return self.n_splits
