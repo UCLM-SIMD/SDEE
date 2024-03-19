@@ -1,11 +1,12 @@
 import argparse
 import pandas as pd
 from sklearn.metrics import make_scorer
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
 
 from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 
 from custom_kfold import CustomKFold
+from montecarlo_simulation import MCSimulation
 from statistics import calculate_mae, calculate_nmae, calculate_mean_squared_error
 import matplotlib.pyplot as plt
 # from tensorflow.keras.models import Sequential
@@ -121,10 +122,12 @@ def train_best(iterations_filename: str, output_filename: str):
     # Assuming your data is in X and y
     n_folds = 10
     kf = CustomKFold(n_splits=n_folds, shuffle=False)
+    tkf = TimeSeriesSplit(n_splits=3)
 
     nmae_values = []
     models = [GradientBoostingRegressor(n_estimators=100, learning_rate=0.1, max_depth=5),
-              RandomForestRegressor(n_estimators=500, max_depth=7)]
+              RandomForestRegressor(n_estimators=500, max_depth=7),
+              MCSimulation(percentile=95, simulations=1)]
     for train_index, test_index in kf.split(X):
         for model in models:
             X_train, X_test = X.iloc[train_index], X.iloc[test_index]
