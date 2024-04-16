@@ -135,7 +135,8 @@ def get_X_y(df):
     return X, y
 
 
-def train_model_cv(X, y, model, cv) -> float:
+def train_model_cv(X, y, model, cv) -> list[float]:
+    nmae_values = []
     for train_index, test_index in cv.split(X):
         X_train, X_test = X.iloc[train_index], X.iloc[test_index]
         y_train, y_test = y.iloc[train_index], y.iloc[test_index]
@@ -148,7 +149,8 @@ def train_model_cv(X, y, model, cv) -> float:
 
         # Calculate NMAE for this fold
         nmae = calculate_nmae(y_test, y_pred)
-        return nmae
+        nmae_values.append(nmae)
+    return nmae_values
 
 
 if __name__ == "__main__":
