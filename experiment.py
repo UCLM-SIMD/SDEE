@@ -1,18 +1,9 @@
 import time
-import numpy as np
 import pandas as pd
-from matplotlib import pyplot as plt
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split
-from custom_kfold import CustomKFold
-from sdee_statistics import calculate_nmae
-from train_dataset import get_X_y, train_model_cv
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.feature_selection import (
-    SelectPercentile,
-    f_regression,
-    mutual_info_regression,
-)
+from src.custom_kfold import CustomKFold
+from src.sdee_statistics import calculate_nmae
+from src.train_dataset import get_X_y
 from sklearn.metrics import make_scorer
 from sklearn.model_selection import cross_val_score
 from sklearn.pipeline import Pipeline
@@ -60,10 +51,11 @@ def run_experiment():
     )
     execution_time = time.time() - start_time
 
-    with open("results_sdee.txt", "w") as file:
-        file.write(f"Time(s):{execution_time}\n")
-        file.write(f"NMAE:{nmae_values}\n")
+    print(f"Time(s):{execution_time}\n")
+    print(f"NMAE:{nmae_values}\n")
 
 
 if __name__ == "__main__":
+    print("starting")
     run_experiment()
+    print("finished")

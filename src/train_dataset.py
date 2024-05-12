@@ -5,11 +5,13 @@ from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
 
 from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 
-from custom_kfold import CustomKFold
+from src.custom_kfold import CustomKFold
 from montecarlo_simulation import MCSimulation
-from sdee_statistics import calculate_mae, calculate_nmae, calculate_mean_squared_error
-import matplotlib.pyplot as plt
-
+from src.sdee_statistics import (
+    calculate_mae,
+    calculate_nmae,
+    calculate_mean_squared_error,
+)
 
 from sklearn.model_selection import train_test_split
 
