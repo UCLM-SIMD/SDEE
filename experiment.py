@@ -19,8 +19,6 @@ def run_experiment():
     # setup model:
     X, y = get_X_y(dataset_iteration_30)
 
-    custom_kfold = CustomKFold(n_splits=10, shuffle=False)
-
     # train model
     random_forest = RandomForestRegressor(
         n_estimators=500, max_depth=7, random_state=42
@@ -36,7 +34,7 @@ def run_experiment():
                 SequentialFeatureSelector(
                     random_forest,
                     n_features_to_select=0.2,
-                    cv=custom_kfold,
+                    cv=CustomKFold(n_splits=2, shuffle=False),
                     n_jobs=-1,
                     scoring=nmae_scorer,
                 ),
@@ -47,7 +45,11 @@ def run_experiment():
 
     start_time = time.time()
     nmae_values = cross_val_score(
-        sfs_pipeline, X, y, cv=custom_kfold, scoring=nmae_scorer
+        sfs_pipeline,
+        X,
+        y,
+        cv=CustomKFold(n_splits=10, shuffle=False),
+        scoring=nmae_scorer,
     )
     execution_time = time.time() - start_time
 
