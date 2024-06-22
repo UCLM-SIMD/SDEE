@@ -1,20 +1,20 @@
+import argparse
+from collections import defaultdict
 import time
+import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from src.custom_kfold import CustomKFold
 from src.sdee_statistics import calculate_nmae
 from src.train_dataset import get_X_y
 from sklearn.metrics import make_scorer
-from sklearn.model_selection import cross_val_score
 from sklearn.pipeline import Pipeline
 from sklearn.feature_selection import SequentialFeatureSelector
-from sklearn.feature_selection import mutual_info_regression
 
 
-def run_experiment():
+def run_experiment(tol=None, direction="forward"):
     # load dataset heads:
     dataset_iteration_30 = pd.read_csv("datasets/apache_iteration_30_features.csv")
-    dataset_iteration_30.head(1)
 
     # setup model:
     X, y = get_X_y(dataset_iteration_30)
@@ -33,7 +33,9 @@ def run_experiment():
                 "feature_selection",
                 SequentialFeatureSelector(
                     random_forest,
-                    n_features_to_select=0.2,
+                    direction=direction,
+                    n_features_to_select="auto",  # 0.2,
+                    tol=tol,
                     cv=CustomKFold(n_splits=2, shuffle=False),
                     n_jobs=-1,
                     scoring=nmae_scorer,
@@ -44,20 +46,68 @@ def run_experiment():
     )
 
     start_time = time.time()
-    nmae_values = cross_val_score(
-        sfs_pipeline,
-        X,
-        y,
-        cv=CustomKFold(n_splits=10, shuffle=False),
-        scoring=nmae_scorer,
-    )
+    # nmae_values = cross_val_score(
+    #    sfs_pipeline,
+    #    X,
+    #    y,
+    #    cv=CustomKFold(n_splits=10, shuffle=False),
+    #    scoring=nmae_scorer,
+    # )
+
+    result = []
+    nmae_values = []
+    feature_counts = defaultdict(int)
+    for fold_idx, (train_idx, test_idx) in enumerate(
+        CustomKFold(n_splits=10, shuffle=False).split(X)
+    ):
+        result_iteration = {}
+        X_train_fold, X_test_fold = X.iloc[train_idx], X.iloc[test_idx]
+        y_train_fold, y_test_fold = y.iloc[train_idx], y.iloc[test_idx]
+
+        # Fit the pipeline
+        sfs_pipeline.fit(X_train_fold, y_train_fold)
+        score = sfs_pipeline.score(X_test_fold, y_test_fold)
+        nmae_values.append(score)
+        print(f"Score for fold {fold_idx+1}: {score}")
+        # Access feature selector
+        feature_selector = sfs_pipeline.named_steps["feature_selection"]
+        # feature_selector.fit(X_train_fold, y_train_fold)
+
+        # Print selected features
+        selected_feature_indices = np.array(feature_selector.get_support())
+
+        print(f"Fold {fold_idx+1}: {X.columns[selected_feature_indices]}")
+
+        result_iteration["nmae"] = score
+        for index, column_name in enumerate(X.columns):
+            if index in selected_feature_indices:
+                feature_counts[column_name] += 1
+        result_iteration["features"] = feature_counts
+
+        result.append(result_iteration)
+
     execution_time = time.time() - start_time
 
-    print(f"Time(s):{execution_time}\n")
-    print(f"NMAE:{nmae_values}\n")
+    execution_result = {
+        "config": f"tol={tol} direction={direction}",
+        "nmae_avg": np.mean(nmae_values),
+        "time(s)": execution_time,
+        "folds": result,
+    }
+    print(execution_result)
 
 
 if __name__ == "__main__":
-    print("starting")
-    run_experiment()
+    parser = argparse.ArgumentParser(
+        description="Run the experiment with specific parameters."
+    )
+    parser.add_argument("tol", type=float, help="Tolerance value for the experiment")
+    parser.add_argument("direction", type=str, help="Direction forward or backward")
+
+    # Parse arguments
+    args = parser.parse_args()
+    tol = args.tol
+    direction = args.direction
+    print(f"starting SFS with tol={tol} + direction={direction}")
+    run_experiment(tol, direction)
     print("finished")
