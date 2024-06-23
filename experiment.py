@@ -1,5 +1,6 @@
 import argparse
 from collections import defaultdict
+import json
 import time
 import numpy as np
 import pandas as pd
@@ -26,7 +27,7 @@ def run_experiment(tol=None, direction="forward"):
 
     nmae_scorer = make_scorer(calculate_nmae, greater_is_better=False)
 
-    print(f"Sequential Forward Search:")
+    # print(f"Sequential Forward Search:")
     sfs_pipeline = Pipeline(
         [
             (
@@ -64,19 +65,13 @@ def run_experiment(tol=None, direction="forward"):
         X_train_fold, X_test_fold = X.iloc[train_idx], X.iloc[test_idx]
         y_train_fold, y_test_fold = y.iloc[train_idx], y.iloc[test_idx]
 
-        # Fit the pipeline
         sfs_pipeline.fit(X_train_fold, y_train_fold)
         score = sfs_pipeline.score(X_test_fold, y_test_fold)
         nmae_values.append(score)
-        print(f"Score for fold {fold_idx+1}: {score}")
-        # Access feature selector
+
         feature_selector = sfs_pipeline.named_steps["feature_selection"]
-        # feature_selector.fit(X_train_fold, y_train_fold)
 
-        # Print selected features
         selected_feature_indices = np.array(feature_selector.get_support())
-
-        print(f"Fold {fold_idx+1}: {X.columns[selected_feature_indices]}")
 
         result_iteration["nmae"] = score
         for index, column_name in enumerate(X.columns):
@@ -84,7 +79,7 @@ def run_experiment(tol=None, direction="forward"):
                 feature_counts[column_name] += 1
         result_iteration["features"] = feature_counts
 
-        result.append(result_iteration)
+        result.append(str(result_iteration))
 
     execution_time = time.time() - start_time
 
@@ -94,7 +89,7 @@ def run_experiment(tol=None, direction="forward"):
         "time(s)": execution_time,
         "folds": result,
     }
-    print(execution_result)
+    print(json.dumps(execution_result))
 
 
 if __name__ == "__main__":
@@ -108,6 +103,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     tol = args.tol
     direction = args.direction
-    print(f"starting SFS with tol={tol} + direction={direction}")
+    # print(f"starting SFS with tol={tol} + direction={direction}")
     run_experiment(tol, direction)
-    print("finished")
+    # print("finished")

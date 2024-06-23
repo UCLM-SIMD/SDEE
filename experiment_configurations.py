@@ -1,6 +1,6 @@
 if __name__ == "__main__":
     print(f"Generate configs")
-    tols = [0.1, 0.01, 0.001, 0.0001, 0.00001, 0.000001]
+    tols = [1, 0.5, 0.4, 0.3, 0.2, 0.15, 0.1, 0.01, 0.001]
     directions = ["forward", "backward"]
     with open("configs.txt", "w") as f:
         for direct in directions:
