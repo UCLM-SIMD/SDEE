@@ -12,8 +12,18 @@ CONFIG_FILE="configs.txt"
 NUM_TASKS=$(wc -l < "$CONFIG_FILE")
 
 # Submit the job array
-sbatch --job-name=$JOB_NAME --mem=$MEM --output=outputs/%A_%a.txt --error=errors/%A_%a.txt --array=1-$NUM_TASKS <<EOT
+JOB_ID=$(sbatch --job-name=$JOB_NAME --mem=$MEM --output=outputs/%A_%a.txt --error=errors/%A_%a.txt --array=1-$NUM_TASKS <<EOT
 #!/bin/bash
 LINE=\$(sed -n "\${SLURM_ARRAY_TASK_ID}p" $CONFIG_FILE)
-python $PYTHON_SCRIPT \$LINE
+#python $PYTHON_SCRIPT \$LINE
+EOT
+)
+
+JOB_ID=$(echo $JOB_ID | awk '{print $4}')
+EMAIL_SCRIPT="send_email.py"
+
+# Submit a follow-up job to send an email after all array jobs have finished
+sbatch --job-name="${JOB_NAME}_afterok" --dependency=afterok:$JOB_ID <<EOT
+#!/bin/bash
+python $EMAIL_SCRIPT
 EOT
