@@ -14,12 +14,6 @@ NUM_TASKS=$(wc -l < "$CONFIG_FILE")
 # Submit the job array
 sbatch --job-name=$JOB_NAME --mem=$MEM --output=outputs/%A_%a.txt --error=errors/%A_%a.txt --array=1-$NUM_TASKS <<EOT
 #!/bin/bash
-
-# Extract parameters for this task
 LINE=\$(sed -n "\${SLURM_ARRAY_TASK_ID}p" $CONFIG_FILE)
-PARAM1=\$(echo \$LINE | cut -d' ' -f1)
-PARAM2=\$(echo \$LINE | cut -d' ' -f2)
-
-# Run the Python script with the extracted parameters
-python $PYTHON_SCRIPT \$PARAM1 \$PARAM2
+python $PYTHON_SCRIPT \$LINE
 EOT
