@@ -67,7 +67,7 @@ def run_experiment(tol=None, direction="forward", n_features_to_select="auto"):
     execution_time = time.time() - start_time
 
     execution_result = {
-        "config": f"tol={tol} direction={direction}",
+        "config": f"tol={tol} direction={direction} n_features_to_select={n_features_to_select}",
         "nmae_avg": np.mean(nmae_values),
         "time(s)": execution_time,
         "folds": result,
