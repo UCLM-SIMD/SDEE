@@ -6,6 +6,7 @@ JOB_NAME="sdee"
 MEM="8gb"
 
 # Path to the file containing one numeric value per line
+python experiment_configurations.py
 CONFIG_FILE="configs.txt"
 
 # Read the number of lines (tasks) in the config file
@@ -25,5 +26,6 @@ EMAIL_SCRIPT="send_email.py"
 # Submit a follow-up job to send an email after all array jobs have finished
 sbatch --job-name="${JOB_NAME}_afterok" --dependency=afterok:$JOB_ID <<EOT
 #!/bin/bash
+python results_merger.py $JOB_ID
 python $EMAIL_SCRIPT
 EOT

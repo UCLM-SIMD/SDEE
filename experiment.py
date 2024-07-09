@@ -5,23 +5,40 @@ import time
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import cross_val_score
 from src.custom_kfold import CustomKFold
-from src.sdee_statistics import calculate_nmae
+from src.sdee_statistics import calculate_mae
 from src.train_dataset import get_X_y
 from sklearn.metrics import make_scorer
 from sklearn.pipeline import Pipeline
 from sklearn.feature_selection import SequentialFeatureSelector
 
 
+def parse_value(value):
+    try:
+        if value == "None":
+            return None
+        # Try to convert to float first
+        float_value = float(value)
+        # Check if it can be represented as an integer
+        if float_value.is_integer():
+            return int(float_value)
+        return float_value
+    except ValueError:
+        # Return as string if it's neither int nor float
+        return value
+
+
 def run_experiment(tol=None, direction="forward", n_features_to_select="auto"):
     dataset_iteration_30 = pd.read_csv("datasets/apache_iteration_30_features.csv")
     X, y = get_X_y(dataset_iteration_30)
 
+    mae_scorer = make_scorer(calculate_mae, greater_is_better=False)
+    cv = CustomKFold(n_splits=10, shuffle=False)
+
     random_forest = RandomForestRegressor(
         n_estimators=500, max_depth=7, random_state=42
     )
-
-    nmae_scorer = make_scorer(calculate_nmae, greater_is_better=False)
 
     sfs_pipeline = Pipeline(
         [
@@ -34,7 +51,7 @@ def run_experiment(tol=None, direction="forward", n_features_to_select="auto"):
                     tol=tol,
                     cv=CustomKFold(n_splits=2, shuffle=False),
                     n_jobs=-1,
-                    scoring=nmae_scorer,
+                    scoring=mae_scorer,
                 ),
             ),
             ("regressor", random_forest),
@@ -46,14 +63,13 @@ def run_experiment(tol=None, direction="forward", n_features_to_select="auto"):
     result = []
     nmae_values = []
     feature_counts = defaultdict(int)
-    for fold_idx, (train_idx, test_idx) in enumerate(
-        CustomKFold(n_splits=10, shuffle=False).split(X)
-    ):
+    for fold_idx, (train_idx, test_idx) in enumerate(cv.split(X)):
         X_train_fold, X_test_fold = X.iloc[train_idx], X.iloc[test_idx]
         y_train_fold, y_test_fold = y.iloc[train_idx], y.iloc[test_idx]
 
         sfs_pipeline.fit(X_train_fold, y_train_fold)
-        score = sfs_pipeline.score(X_test_fold, y_test_fold)
+        y_pred = sfs_pipeline.predict(X_test_fold)
+        score = calculate_mae(y_test_fold, y_pred)
         nmae_values.append(score)
 
         feature_selector = sfs_pipeline.named_steps["feature_selection"]
@@ -79,13 +95,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Run the experiment with specific parameters."
     )
-    parser.add_argument("tol", type=float, help="Tolerance value for the experiment")
+    parser.add_argument("tol", help="Tolerance value for the experiment")
     parser.add_argument("direction", type=str, help="Direction forward or backward")
-    parser.add_argument("n_features_to_select", type=float, help="n_features_to_select")
+    parser.add_argument("n_features_to_select", help="n_features_to_select")
 
     args = parser.parse_args()
-    tol = args.tol
+    tol = parse_value(args.tol)
     direction = args.direction
-    n_features_to_select = args.n_features_to_select
+    n_features_to_select = parse_value(args.n_features_to_select)
 
     run_experiment(tol, direction, n_features_to_select)
