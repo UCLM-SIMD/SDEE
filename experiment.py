@@ -7,7 +7,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import cross_val_score
 from src.custom_kfold import CustomKFold
-from src.sdee_statistics import calculate_mae
+from src.sdee_statistics import calculate_mae, calculate_nmae
 from src.train_dataset import get_X_y
 from sklearn.metrics import make_scorer
 from sklearn.pipeline import Pipeline
@@ -62,6 +62,7 @@ def run_experiment(tol=None, direction="forward", n_features_to_select="auto"):
 
     result = []
     nmae_values = []
+    mae_values = []
     feature_counts = defaultdict(int)
     for fold_idx, (train_idx, test_idx) in enumerate(cv.split(X)):
         X_train_fold, X_test_fold = X.iloc[train_idx], X.iloc[test_idx]
@@ -69,21 +70,24 @@ def run_experiment(tol=None, direction="forward", n_features_to_select="auto"):
 
         sfs_pipeline.fit(X_train_fold, y_train_fold)
         y_pred = sfs_pipeline.predict(X_test_fold)
-        score = calculate_mae(y_test_fold, y_pred)
-        nmae_values.append(score)
+        mae = calculate_mae(y_test_fold, y_pred)
+        mae_values.append(mae)
+        nmae = calculate_nmae(y_test_fold, y_pred)
+        nmae_values.append(nmae)
 
         feature_selector = sfs_pipeline.named_steps["feature_selection"]
         selected_feature_indices = np.array(feature_selector.get_support())
         for index, column_name in enumerate(X.columns):
-            if index in selected_feature_indices:
+            if selected_feature_indices[index]:
                 feature_counts[column_name] += 1
 
-        result.append({"nmae": score, "features": dict(feature_counts)})
+        result.append({"mae": mae, "nmae": nmae, "features": dict(feature_counts)})
 
     execution_time = time.time() - start_time
 
     execution_result = {
         "config": f"tol={tol} direction={direction} n_features_to_select={n_features_to_select}",
+        "mae_avg": np.mean(mae_values),
         "nmae_avg": np.mean(nmae_values),
         "time(s)": execution_time,
         "folds": result,
