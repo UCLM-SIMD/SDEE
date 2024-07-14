@@ -77,11 +77,13 @@ def run_experiment(tol=None, direction="forward", n_features_to_select="auto"):
 
         feature_selector = sfs_pipeline.named_steps["feature_selection"]
         selected_feature_indices = np.array(feature_selector.get_support())
+        feature_list = []
         for index, column_name in enumerate(X.columns):
             if selected_feature_indices[index]:
+                feature_list.append(column_name)
                 feature_counts[column_name] += 1
 
-        result.append({"mae": mae, "nmae": nmae, "features": dict(feature_counts)})
+        result.append({"mae": mae, "nmae": nmae, "features": feature_list})
 
     execution_time = time.time() - start_time
 
@@ -91,6 +93,7 @@ def run_experiment(tol=None, direction="forward", n_features_to_select="auto"):
         "nmae_avg": np.mean(nmae_values),
         "time(s)": execution_time,
         "folds": result,
+        "features_frequency": feature_counts,
     }
     print(json.dumps(execution_result))
 

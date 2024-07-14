@@ -10,8 +10,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     file_prefix = args.file_prefix
 
-    outputs_directory = os.path.join(os.getcwd(), "outputs")
-    pattern = os.path.join(outputs_directory, f"{file_prefix}*")
+    outputs_directory = os.path.join(os.getcwd(), f"{file_prefix}/outputs")
+    pattern = os.path.join(outputs_directory, "*")
     files = glob.glob(pattern)
 
     merged_json_list = []

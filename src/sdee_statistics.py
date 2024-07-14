@@ -11,6 +11,12 @@ def calculate_nmae(y_test: list, y_pred: list) -> float:
     return nmae
 
 
+def calculate_nmae_pre_calculated_iqr(y_test: list, y_pred: list, iqr: float) -> float:
+    mae = calculate_mae(y_test, y_pred)
+    nmae = mae / iqr
+    return nmae
+
+
 def calculate_mae(y_test: list, y_pred: list) -> float:
     return mean_absolute_error(y_test, y_pred)
 
