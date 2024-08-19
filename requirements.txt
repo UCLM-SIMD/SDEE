@@ -5,3 +5,5 @@ scipy
 matplotlib
 python-dotenv
 boto3
+shap
+lime
