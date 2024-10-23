@@ -29,8 +29,8 @@ def parse_value(value):
         return value
 
 
-def run_experiment(tol=None, direction="forward", n_features_to_select="auto"):
-    dataset_iteration_30 = pd.read_csv("datasets/apache_iteration_30_features.csv")
+def run_experiment(dataset, tol=None, direction="forward", n_features_to_select="auto"):
+    dataset_iteration_30 = pd.read_csv(f"datasets/{dataset}.csv")
     X, y = get_X_y(dataset_iteration_30)
 
     mae_scorer = make_scorer(calculate_mae, greater_is_better=False)
@@ -89,6 +89,7 @@ def run_experiment(tol=None, direction="forward", n_features_to_select="auto"):
 
     execution_result = {
         "config": f"tol={tol} direction={direction} n_features_to_select={n_features_to_select}",
+        "dataset": dataset,
         "mae_avg": np.mean(mae_values),
         "nmae_avg": np.mean(nmae_values),
         "time(s)": execution_time,
@@ -102,13 +103,16 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Run the experiment with specific parameters."
     )
+    parser.add_argument("dataset", help="Dataset name")
     parser.add_argument("tol", help="Tolerance value for the experiment")
-    parser.add_argument("direction", type=str, help="Direction forward or backward")
+    parser.add_argument("direction", type=str,
+                        help="Direction forward or backward")
     parser.add_argument("n_features_to_select", help="n_features_to_select")
 
     args = parser.parse_args()
+    dataset = args.dataset
     tol = parse_value(args.tol)
     direction = args.direction
     n_features_to_select = parse_value(args.n_features_to_select)
 
-    run_experiment(tol, direction, n_features_to_select)
+    run_experiment(dataset, tol, direction, n_features_to_select)

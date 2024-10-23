@@ -5,7 +5,7 @@ import numpy as np
 from src.sdee_statistics import calculate_mae, calculate_nmae
 
 
-def get_fold_results(pipeline, cv, X, y, config_text):
+def get_fold_results(pipeline, cv, X, y, config_text, dataset):
     """
     The pipeline has to have a "feature_selection" step
     returns: {
@@ -55,6 +55,7 @@ def get_fold_results(pipeline, cv, X, y, config_text):
 
     execution_result = {
         "config": config_text,
+        "dataset": dataset,
         "mae_avg": np.mean(mae_values),
         "nmae_avg": np.mean(nmae_values),
         "time(s)": execution_time,
