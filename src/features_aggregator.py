@@ -17,7 +17,8 @@ FIELDS = {
     "no_fixversion_change": int,  # The number of times in which a ﬁx version was changed
     "no_priority_change": int,  # The number of times an issue’s priority was changed
     "no_des_change": int,  # The number of times in which an issue description was changed
-    "gunning_fog": str,  # The read ability index (Gunning Fog [21]) indicates the complexity level
+    # The read ability index (Gunning Fog [21]) indicates the complexity level
+    "gunning_fog": str,
     # of a description which is encoded to easy and hard
 }
 
@@ -43,14 +44,16 @@ def aggregate_features(
         dtype={field: FIELDS[field] for field in FIELDS},
         encoding="latin1",
         delimiter=",",
-        on_bad_lines=lambda bad_line: handle_bad_line(bad_line, cols=ITERATION_COLS),
+        on_bad_lines=lambda bad_line: handle_bad_line(
+            bad_line, cols=ITERATION_COLS),
         engine="python",
     )
     df_issues = pd.read_csv(
         issues_filename,
         encoding="latin1",
         delimiter=",",
-        on_bad_lines=lambda bad_line: handle_bad_line(bad_line, cols=ISSUE_COLS),
+        on_bad_lines=lambda bad_line: handle_bad_line(
+            bad_line, cols=ISSUE_COLS),
         engine="python",
     )
 
@@ -69,11 +72,13 @@ def aggregate_features(
 
         # Filter rows in the second dataset that have the same iteration and board id
         iteration_issues = df_issues[
-            (df_issues["boardid"] == board_id) & (df_issues["sprintid"] == sprint_id)
+            (df_issues["boardid"] == board_id) & (
+                df_issues["sprintid"] == sprint_id)
         ]
 
         # basic statistics
-        df_iterations.at[index, "no_issues"] = iteration_issues.shape[0]
+        # do not do this -> they put all issues in all prediction times, which is a data leakage
+        # df_iterations.at[index, "no_issues"] = iteration_issues.shape[0]
 
         # Perform aggregations:
         for field in fields_to_aggregate:
@@ -86,7 +91,8 @@ def aggregate_features(
                     # for each different value of the field, count the number of occurrences (frequency)
                     counts = iteration_issues[field].value_counts()
                     for value in counts.index:
-                        df_iterations.at[index, f"{field}_freq_{value}"] = counts[value]
+                        df_iterations.at[index,
+                                         f"{field}_freq_{value}"] = counts[value]
 
     # Fill NaN values with 0 for categorical features
     df_iterations.fillna(0, inplace=True)
@@ -99,11 +105,11 @@ def aggregate_features(
 def handle_bad_line(bad_line, cols):
     if len(bad_line) > cols:
         # Join the problematic parts and replace commas with semicolons
-        text_column = ",".join(bad_line[2 : len(bad_line) - (cols - 3)]).replace(
+        text_column = ",".join(bad_line[2: len(bad_line) - (cols - 3)]).replace(
             ",", ""
         )
 
-        fixed_row = bad_line[:2] + [text_column] + bad_line[-(cols - 3) :]
+        fixed_row = bad_line[:2] + [text_column] + bad_line[-(cols - 3):]
         return fixed_row
     return bad_line
 
@@ -149,17 +155,17 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Adds statistical features to the iterations of a dataset"
     )
-    parser.add_argument("--iterations", type=str, help="Iterations dataset filename")
-    parser.add_argument("--issues", type=str, help="Issues dataset filename")
-    parser.add_argument(
-        "--output_iterations",
-        type=str,
-        help="Output iterations filename",
-        default="output.csv",
-    )
+    parser.add_argument("--dataset", type=str,     help="dataset")
+
     args = parser.parse_args()
-    print(f"Reading iterations from: {args.iterations} and issues from: {args.issues}")
-    aggregate_features(args.iterations, args.issues, args.output_iterations)
+
+    iterations = f"{args.dataset}_iteration_30.csv"
+    issues = f"{args.dataset}_issue_30.csv"
+    output_iterations = f"{args.dataset}_iteration_30_features.csv"
+
     print(
-        f"Features were successfully aggregated and stored in: {args.output_iterations}"
+        f"Reading iterations from: {iterations} and issues from: {issues}")
+    aggregate_features(iterations, issues, output_iterations)
+    print(
+        f"Features were successfully aggregated and stored in: {output_iterations}"
     )

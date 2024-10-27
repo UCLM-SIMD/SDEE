@@ -22,7 +22,7 @@ if __name__ == "__main__":
             file_content = file.read()
             if not file_content.strip():
                 print("File empty. Skipping")
-                break
+                continue
             content = json.loads(file_content)
             print(f"{file_path}")
             merged_json_list.append(content)
