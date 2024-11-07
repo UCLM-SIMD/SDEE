@@ -1,7 +1,3 @@
-import random
-from collections import defaultdict
-
-import numpy as np
 import pandas as pd
 import argparse
 
@@ -17,7 +13,8 @@ FIELDS = {
     "no_fixversion_change": int,  # The number of times in which a ﬁx version was changed
     "no_priority_change": int,  # The number of times an issue’s priority was changed
     "no_des_change": int,  # The number of times in which an issue description was changed
-    "gunning_fog": str,  # The read ability index (Gunning Fog [21]) indicates the complexity level
+    # The read ability index (Gunning Fog [21]) indicates the complexity level
+    "gunning_fog": str,
     # of a description which is encoded to easy and hard
 }
 
@@ -43,14 +40,16 @@ def aggregate_features(
         dtype={field: FIELDS[field] for field in FIELDS},
         encoding="latin1",
         delimiter=",",
-        on_bad_lines=lambda bad_line: handle_bad_line(bad_line, cols=ITERATION_COLS),
+        on_bad_lines=lambda bad_line: handle_bad_line(
+            bad_line, cols=ITERATION_COLS),
         engine="python",
     )
     df_issues = pd.read_csv(
         issues_filename,
         encoding="latin1",
         delimiter=",",
-        on_bad_lines=lambda bad_line: handle_bad_line(bad_line, cols=ISSUE_COLS),
+        on_bad_lines=lambda bad_line: handle_bad_line(
+            bad_line, cols=ISSUE_COLS),
         engine="python",
     )
 
@@ -69,7 +68,8 @@ def aggregate_features(
 
         # Filter rows in the second dataset that have the same iteration and board id
         iteration_issues = df_issues[
-            (df_issues["boardid"] == board_id) & (df_issues["sprintid"] == sprint_id)
+            (df_issues["boardid"] == board_id) & (
+                df_issues["sprintid"] == sprint_id)
         ]
 
         # basic statistics
@@ -86,7 +86,8 @@ def aggregate_features(
                     # for each different value of the field, count the number of occurrences (frequency)
                     counts = iteration_issues[field].value_counts()
                     for value in counts.index:
-                        df_iterations.at[index, f"{field}_freq_{value}"] = counts[value]
+                        df_iterations.at[index,
+                                         f"{field}_freq_{value}"] = counts[value]
 
     # Fill NaN values with 0 for categorical features
     df_iterations.fillna(0, inplace=True)
@@ -99,57 +100,21 @@ def aggregate_features(
 def handle_bad_line(bad_line, cols):
     if len(bad_line) > cols:
         # Join the problematic parts and replace commas with semicolons
-        text_column = ",".join(bad_line[2 : len(bad_line) - (cols - 3)]).replace(
+        text_column = ",".join(bad_line[2: len(bad_line) - (cols - 3)]).replace(
             ",", ""
         )
 
-        fixed_row = bad_line[:2] + [text_column] + bad_line[-(cols - 3) :]
+        fixed_row = bad_line[:2] + [text_column] + bad_line[-(cols - 3):]
         return fixed_row
     return bad_line
-
-
-def add_mcs_throughput(df_iterations):
-    df_iterations = df_iterations.copy()
-    board_throughputs = defaultdict(list)
-    all_throughputs = []
-
-    for index, row in df_iterations.iterrows():
-        board_throughputs[row["boardid"]].append(row["no_issuedone"])
-        all_throughputs.append(row["no_issuedone"])
-        percentiles = _simulate_mcs_throughput(all_throughputs)
-        # _simulate_mcs_throughput(board_throughputs[row["boardid"]])
-        df_iterations.at[index, "mcs_throughput_50"] = percentiles[50]
-        df_iterations.at[index, "mcs_throughput_85"] = percentiles[85]
-        df_iterations.at[index, "mcs_throughput_95"] = percentiles[95]
-
-    return df_iterations
-
-
-def _simulate_mcs_throughput(throughputs: list[int], n_simulations=1000):
-    if not throughputs:
-        return {
-            50: 0,
-            85: 0,
-            95: 0,
-        }
-    mcs_throughputs = []
-    for _ in range(n_simulations):
-        # pick a random throughput from the list:
-        random_throughput = random.choice(throughputs)
-        mcs_throughputs.append(random_throughput)
-    # return percentiles
-    return {
-        50: np.percentile(mcs_throughputs, 50),
-        85: np.percentile(mcs_throughputs, 85),
-        95: np.percentile(mcs_throughputs, 95),
-    }
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Adds statistical features to the iterations of a dataset"
     )
-    parser.add_argument("--iterations", type=str, help="Iterations dataset filename")
+    parser.add_argument("--iterations", type=str,
+                        help="Iterations dataset filename")
     parser.add_argument("--issues", type=str, help="Issues dataset filename")
     parser.add_argument(
         "--output_iterations",
@@ -158,7 +123,8 @@ if __name__ == "__main__":
         default="output.csv",
     )
     args = parser.parse_args()
-    print(f"Reading iterations from: {args.iterations} and issues from: {args.issues}")
+    print(
+        f"Reading iterations from: {args.iterations} and issues from: {args.issues}")
     aggregate_features(args.iterations, args.issues, args.output_iterations)
     print(
         f"Features were successfully aggregated and stored in: {args.output_iterations}"

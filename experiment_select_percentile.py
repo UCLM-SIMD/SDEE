@@ -1,18 +1,12 @@
 import argparse
-from collections import defaultdict
 import json
-import time
-import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import cross_val_score
 from src.custom_kfold import CustomKFold
 from src.get_folds_results import get_fold_results
-from src.sdee_statistics import calculate_mae, calculate_nmae
 from src.train_dataset import get_X_y
-from sklearn.metrics import make_scorer
 from sklearn.pipeline import Pipeline
-from sklearn.feature_selection import SelectPercentile, SequentialFeatureSelector
+from sklearn.feature_selection import SelectPercentile
 
 
 def parse_value(value):
