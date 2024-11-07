@@ -1,11 +1,12 @@
-# SDEE
+# Software Development Effort Estimation (SDEE)
 
-Activate the conda environment with: `conda activate sdee`.
+![Python 3.10](https://img.shields.io/badge/Python-3.10-blue?logo=python&logoColor=yellow)
+<a href="https://github.com/UCLM-SIMD/SDEE/tree/todo"><img src="https://img.shields.io/static/v1?label=conference&message=TODO&color=purple"></a>
 
-## Slurm
+# First steps
 
-- `sjstat`
-- `scancel job_array`
-- `squeue --job <your_job_number>`
-- `squeue -u <your_user_name>`
-- `sacct -u <your_user_name>`
+First, install dependencies: `pip install -r requirements.txt`
+
+# Experiments
+
+The experiments are described in detail in `notebook.ipynb`.
