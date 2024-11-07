@@ -31,14 +31,28 @@ AGGREGATIONS = {
     "range": lambda col: col.max() - col.min(),
 }
 
+ISSUE_COLS = 14
+ITERATION_COLS = 19
+
 
 def aggregate_features(
     iterations_filename: str, issues_filename: str, output_iterations_filename: str
 ):
     df_iterations = pd.read_csv(
-        iterations_filename, dtype={field: FIELDS[field] for field in FIELDS}
+        iterations_filename,
+        dtype={field: FIELDS[field] for field in FIELDS},
+        encoding="latin1",
+        delimiter=",",
+        on_bad_lines=lambda bad_line: handle_bad_line(bad_line, cols=ITERATION_COLS),
+        engine="python",
     )
-    df_issues = pd.read_csv(issues_filename)
+    df_issues = pd.read_csv(
+        issues_filename,
+        encoding="latin1",
+        delimiter=",",
+        on_bad_lines=lambda bad_line: handle_bad_line(bad_line, cols=ISSUE_COLS),
+        engine="python",
+    )
 
     print(f"Nº Iterations: {df_iterations.shape[0]}")
     print(f"Nº Issues: {df_issues.shape[0]}")
@@ -80,6 +94,18 @@ def aggregate_features(
     print("]")
     # store dataset
     df_iterations.to_csv(output_iterations_filename, index=False)
+
+
+def handle_bad_line(bad_line, cols):
+    if len(bad_line) > cols:
+        # Join the problematic parts and replace commas with semicolons
+        text_column = ",".join(bad_line[2 : len(bad_line) - (cols - 3)]).replace(
+            ",", ""
+        )
+
+        fixed_row = bad_line[:2] + [text_column] + bad_line[-(cols - 3) :]
+        return fixed_row
+    return bad_line
 
 
 def add_mcs_throughput(df_iterations):
