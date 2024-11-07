@@ -19,13 +19,3 @@ LINE=\$(sed -n "\${SLURM_ARRAY_TASK_ID}p" $CONFIG_FILE)
 python $PYTHON_SCRIPT \$LINE
 EOT
 )
-
-JOB_ID=$(echo $JOB_ID | awk '{print $4}')
-EMAIL_SCRIPT="send_email.py"
-
-# Submit a follow-up job to send an email after all array jobs have finished
-sbatch --job-name="${JOB_NAME}_afterok" --dependency=afterok:$JOB_ID <<EOT
-#!/bin/bash
-python results_merger.py $JOB_ID
-python $EMAIL_SCRIPT
-EOT

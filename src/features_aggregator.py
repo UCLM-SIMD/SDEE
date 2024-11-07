@@ -72,9 +72,6 @@ def aggregate_features(
                 df_issues["sprintid"] == sprint_id)
         ]
 
-        # basic statistics
-        df_iterations.at[index, "no_issues"] = iteration_issues.shape[0]
-
         # Perform aggregations:
         for field in fields_to_aggregate:
             for agg_key, agg_fun in AGGREGATIONS.items():

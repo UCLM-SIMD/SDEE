@@ -5,8 +5,6 @@ import numpy as np
 from statsmodels.stats.multitest import multipletests
 from src.VD_A import VD_A
 
-from scipy.stats import rankdata
-
 
 def apply_holm_bonferroni(p_values, alpha=0.05):
     """

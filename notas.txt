@@ -1,5 +1,0 @@
-train test -> modelo con el fit se lo paso al SHAP para que calcule importancias de cada caracteristica
-
-seleccion de variables con 2 proyectos mas
-
-SHAP y LIME para explicabilidad
