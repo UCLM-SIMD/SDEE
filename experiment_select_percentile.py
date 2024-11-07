@@ -4,7 +4,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from src.custom_kfold import CustomKFold
 from src.get_folds_results import get_fold_results
-from src.train_dataset import get_X_y
+from src.get_xy import get_X_y
 from sklearn.pipeline import Pipeline
 from sklearn.feature_selection import SelectPercentile
 
